@@ -23,9 +23,6 @@
     <ClCompile Include="ClassicMain.cpp" />
     <ClCompile Include="MainRender.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="Text.txt" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -88,7 +85,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\Coding\PersonalTest\sameple-physX\physx\snippets\graphics\include\win32\GL;D:\Coding\PersonalTest\sameple-physX\physx\snippets\snippetutils;D:\Coding\PersonalTest\sameple-physX\physx\snippets\snippetcommon;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug;D:\Coding\PersonalTest\sameple-physX\pxshared\include;D:\Coding\PersonalTest\sameple-physX\physx\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>D:\Coding\PersonalTest\sameple-physX\physx\samples\pxtoolkit\include;D:\Coding\PersonalTest\sameple-physX\physx\source\foundation\include;D:\Coding\PersonalTest\sameple-physX\physx\snippets\graphics\include\win32\GL;D:\Coding\PersonalTest\sameple-physX\physx\snippets\snippetutils;D:\Coding\PersonalTest\sameple-physX\physx\snippets\snippetcommon;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug;D:\Coding\PersonalTest\sameple-physX\pxshared\include;D:\Coding\PersonalTest\sameple-physX\physx\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <SourcePath>$(VC_SourcePath);</SourcePath>
     <LibraryPath>D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -138,7 +135,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXExtensions_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysX_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXPvdSDK_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXVehicle_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXCharacterKinematic_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXCooking_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXCommon_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\SnippetUtils_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\SnippetRender_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXFoundation_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\snippets\Graphics\lib\win64\glut\glut32.lib;opengl32.lib;glu32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\SamplesToolkit_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXExtensions_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysX_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXPvdSDK_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXVehicle_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\SampleBase_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXCharacterKinematic_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXCooking_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXCommon_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\SnippetUtils_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\SnippetRender_static_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\bin\win.x86_64.vc142.mt\debug\PhysXFoundation_64.lib;D:\Coding\PersonalTest\sameple-physX\physx\snippets\Graphics\lib\win64\glut\glut32.lib;opengl32.lib;glu32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>

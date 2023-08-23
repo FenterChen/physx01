@@ -4,8 +4,9 @@
 #include "SnippetPrint.h"
 #include "SnippetPVD.h"
 #include "SnippetUtils.h"
+#include <ctime>
 
-#define RENDER_SNIPPET 1
+#define RENDER_SNIPPET 
 
 using namespace physx;
 
@@ -24,8 +25,10 @@ PxPvd* gPvd = NULL;
 
 PxReal stackZ = 10.0f;
 
+
 PxRigidDynamic* createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity = PxVec3(0))
 {
+	PxReal addTime = 10.0f;
 	PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
 	dynamic->setAngularDamping(0.5f);
 	dynamic->setLinearVelocity(velocity);
@@ -36,6 +39,7 @@ PxRigidDynamic* createDynamic(const PxTransform& t, const PxGeometry& geometry, 
 void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 {
 	PxShape* shape = gPhysics->createShape(PxBoxGeometry(halfExtent, halfExtent, halfExtent), *gMaterial);
+
 	for (PxU32 i = 0; i < size; i++)
 	{
 		for (PxU32 j = 0; j < size - i; j++)
@@ -61,6 +65,10 @@ void initPhysics(bool interactive)
 	gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true, gPvd);
 
 	PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
+
+	//ENABLE_ENHANCED_DETERMINISM
+	sceneDesc.flags.set(PxSceneFlag::eENABLE_ENHANCED_DETERMINISM);
+
 	sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
 	gDispatcher = PxDefaultCpuDispatcherCreate(2);
 	sceneDesc.cpuDispatcher = gDispatcher;
@@ -79,17 +87,42 @@ void initPhysics(bool interactive)
 	PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
 	gScene->addActor(*groundPlane);
 
-	for (PxU32 i = 0; i < 5; i++)
+	for (PxU32 i = 0; i < 10; i++)
 		createStack(PxTransform(PxVec3(0, 0, stackZ -= 10.0f)), 10, 2.0f);
 
+
 	if (!interactive)
-		createDynamic(PxTransform(PxVec3(0, 40, 100)), PxSphereGeometry(10), PxVec3(0, -50, -100));
+		createDynamic(PxTransform(PxVec3(0, 40, 50)), PxSphereGeometry(10), PxVec3(0, -50, -100));
 }
 
 void stepPhysics(bool /*interactive*/)
 {
-	gScene->simulate(1.0f / 60.0f);
+	extern void updateFPS();
+	extern void displayFPS();
+	updateFPS();
+	displayFPS();
+	gScene->simulate(1.0f / 30.0f);
 	gScene->fetchResults(true);
+	PxU32 timestamp = gScene->getTimestamp();
+	if (timestamp == 30) {
+		createDynamic(PxTransform(PxVec3(0, 40, 50)), PxSphereGeometry(5), PxVec3(0, -50, -100));
+	}
+	if (timestamp == 150) {
+		createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
+		createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
+		createDynamic(PxTransform(PxVec3(0, 40, 40)), PxSphereGeometry(10), PxVec3(0, -50, -100));
+	}
+	if (timestamp == 300) {
+		createDynamic(PxTransform(PxVec3(0, 40, 50)), PxSphereGeometry(5), PxVec3(0, -50, -100));
+	}
+	if (timestamp == 400) {
+		createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
+		createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
+		createDynamic(PxTransform(PxVec3(0, 40, 10)), PxSphereGeometry(10), PxVec3(0, -50, -100));
+	}
+	if (timestamp == 500) {
+		createDynamic(PxTransform(PxVec3(0, 40, 10)), PxSphereGeometry(5), PxVec3(0, -50, -100));
+	}
 }
 
 void cleanupPhysics(bool /*interactive*/)
@@ -105,11 +138,12 @@ void cleanupPhysics(bool /*interactive*/)
 	}
 	PX_RELEASE(gFoundation);
 
-	printf("SnippetHelloWorld done.\n");
+	printf("PhysX Main done.\n");
 }
 
 void keyPress(unsigned char key, const PxTransform& camera)
 {
+	extern void displayFPS();
 	switch (toupper(key))
 	{
 	case 'B':	createStack(PxTransform(PxVec3(0, 0, stackZ -= 10.0f)), 10, 2.0f);						break;
@@ -128,6 +162,12 @@ int snippetMain(int, const char* const*)
 	for (PxU32 i = 0; i < frameCount; i++)
 		stepPhysics(false);
 	cleanupPhysics(false);
+
+	//static const PxU32 frameCount = 100;
+	//initPhysics(false);
+	//for (PxU32 i = 0; i < frameCount; i++)
+	//	stepPhysics(false);
+	//cleanupPhysics(false);
 #endif
 
 	return 0;

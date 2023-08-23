@@ -3,9 +3,8 @@
 #ifdef RENDER_SNIPPET
 
 #include <vector>
-
 #include "PxPhysicsAPI.h"
-
+#include "PxTkFPS.h"
 #include "../snippetrender/SnippetRender.h"
 #include "../snippetrender/SnippetCamera.h"
 
@@ -16,10 +15,10 @@ extern void stepPhysics(bool interactive);
 extern void cleanupPhysics(bool interactive);
 extern void keyPress(unsigned char key, const PxTransform& camera);
 
-
 namespace
 {
 	Snippets::Camera* sCamera;
+	PxToolkit::FPS mFPS;
 
 	void motionCallback(int x, int y)
 	{
@@ -60,7 +59,6 @@ namespace
 			scene->getActors(PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC, reinterpret_cast<PxActor**>(&actors[0]), nbActors);
 			Snippets::renderActors(&actors[0], static_cast<PxU32>(actors.size()), true);
 		}
-
 		Snippets::finishRender();
 	}
 
@@ -69,13 +67,31 @@ namespace
 		delete sCamera;
 		cleanupPhysics(true);
 	}
+
+}
+void updateFPS()
+{
+	mFPS.update();
+}
+
+void displayFPS()
+{
+	char fpsText[512];
+	sprintf(fpsText, "%0.2f fps", mFPS.getFPS());
+	printf("%s\n", fpsText);
+
+	//Renderer* renderer = getRenderer();
+
+	//const PxU32 yInc = 18;
+	//renderer->print(10, getCamera().getScreenHeight() - yInc * 2, fpsText);
+
 }
 
 void renderLoop()
 {
-	sCamera = new Snippets::Camera(PxVec3(50.0f, 50.0f, 50.0f), PxVec3(-0.6f, -0.2f, -0.7f));
+	sCamera = new Snippets::Camera(PxVec3(-7, 100, 30), PxVec3(0, -0.6, -0.5));
 
-	Snippets::setupDefaultWindow("PhysX Snippet Main");
+	Snippets::setupDefaultWindow("PhysX Main");
 	Snippets::setupDefaultRenderState();
 
 	glutIdleFunc(idleCallback);
@@ -90,4 +106,5 @@ void renderLoop()
 	initPhysics(true);
 	glutMainLoop();
 }
+
 #endif
