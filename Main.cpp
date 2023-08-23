@@ -24,6 +24,12 @@ PxMaterial* gMaterial = NULL;
 PxPvd* gPvd = NULL;
 
 PxReal stackZ = 10.0f;
+PxRigidDynamic* machineP;
+
+bool direction = true;
+float xLine = 0.0;
+float stepFps = 30;
+//int xLine = 0;
 
 
 PxRigidDynamic* createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity = PxVec3(0))
@@ -58,23 +64,45 @@ void createMachine()
 	PxShape* machineShape = gPhysics->createShape(PxBoxGeometry(5, 10, 40), *gMaterial);
 	PxShape* machineShapeB = gPhysics->createShape(PxBoxGeometry(55, 5, 40), *gMaterial);
 	PxShape* machineShapeP = gPhysics->createShape(PxBoxGeometry(5, 5, 5), *gMaterial);
+	PxShape* machineShapeP2 = gPhysics->createShape(PxBoxGeometry(2, 2, 2), *gMaterial);
 	PxTransform machineTmL(PxVec3(PxReal(-50), PxReal(100), -40));
 	PxTransform machineTmR(PxVec3(PxReal(50), PxReal(100), -40));
 	PxTransform machineTmB(PxVec3(PxReal(0), PxReal(90), -40));
 	PxTransform machineTmP(PxVec3(PxReal(0), PxReal(100), -40));
+	PxTransform machineTmP2(PxVec3(PxReal(20), PxReal(100), -40));
 	PxRigidStatic* machineL = gPhysics->createRigidStatic(machineTmL);
 	PxRigidStatic* machineR = gPhysics->createRigidStatic(machineTmR);
 	PxRigidStatic* machineB = gPhysics->createRigidStatic(machineTmB);
-	PxRigidDynamic* machineP = gPhysics->createRigidDynamic(machineTmP);
+	machineP = gPhysics->createRigidDynamic(machineTmP);
+	PxRigidDynamic* machineP2 = gPhysics->createRigidDynamic(machineTmP2);
 	machineL->attachShape(*machineShape);
 	machineR->attachShape(*machineShape);
 	machineB->attachShape(*machineShapeB);
 	machineP->attachShape(*machineShapeP);
+	machineP2->attachShape(*machineShapeP2);
 	PxRigidBodyExt::updateMassAndInertia(*machineP, 10.0f);
 	gScene->addActor(*machineL);
 	gScene->addActor(*machineR);
 	gScene->addActor(*machineB);
 	gScene->addActor(*machineP);
+	gScene->addActor(*machineP2);
+}
+
+void push() {
+
+	if (direction==true) {
+		//machineP->setLinearVelocity(PxVec3(xLine = xLine + 1/stepFps, 0, 0));
+		machineP->setGlobalPose(PxTransform(xLine= xLine++, 100, -40));
+		if (xLine >= 20.0f) {
+			direction = false;
+		}
+	}  else {
+		//machineP->setLinearVelocity(PxVec3(xLine = xLine - 1/stepFps, 0, 0));
+		machineP->setGlobalPose(PxTransform(xLine = xLine--, 100, -40));
+		if (xLine <= -20.0f) {
+			direction = true;
+		}
+	}
 }
 
 void initPhysics()
@@ -108,7 +136,7 @@ void initPhysics()
 	gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
 	//plane
-	//PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
+	//PxRigidStatic* groundPlane = PxCrkeatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
 	//gScene->addActor(*groundPlane);
 
 	//create Coin pusher machine
@@ -121,29 +149,18 @@ void initPhysics()
 
 void stepPhysics(bool /*interactive*/)
 {
+	gScene->simulate(1.0f / stepFps);
+	gScene->fetchResults(true);
+	PxU32 timestamp = gScene->getTimestamp();
 	extern void updateFPS();
 	extern void displayFPS();
 	updateFPS();
 	displayFPS();
-	gScene->simulate(1.0f / 30.0f);
-	gScene->fetchResults(true);
-	PxU32 timestamp = gScene->getTimestamp();
-	//if (timestamp == 30) {
-	//	createDynamic(PxTransform(PxVec3(0, 40, 50)), PxSphereGeometry(5), PxVec3(0, -50, -100));
-	//}
-	//if (timestamp == 150) {
-	//	createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
-	//	createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
-	//	createDynamic(PxTransform(PxVec3(0, 40, 40)), PxSphereGeometry(10), PxVec3(0, -50, -100));
-	//}
-	//if (timestamp == 300) {
-	//	createDynamic(PxTransform(PxVec3(0, 40, 50)), PxSphereGeometry(5), PxVec3(0, -50, -100));
-	//}
-	//if (timestamp == 400) {
-	//	createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
-	//	createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
-	//	createDynamic(PxTransform(PxVec3(0, 40, 10)), PxSphereGeometry(10), PxVec3(0, -50, -100));
-	//}
+	if (timestamp % 30 == 0) {
+		push();
+	}
+
+
 	//if (timestamp == 500) {
 	//	createDynamic(PxTransform(PxVec3(0, 40, 10)), PxSphereGeometry(5), PxVec3(0, -50, -100));
 	//}
