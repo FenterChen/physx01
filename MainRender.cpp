@@ -10,7 +10,7 @@
 
 using namespace physx;
 
-extern void initPhysics(bool interactive);
+extern void initPhysics();
 extern void stepPhysics(bool interactive);
 extern void cleanupPhysics(bool interactive);
 extern void keyPress(unsigned char key, const PxTransform& camera);
@@ -89,7 +89,7 @@ void displayFPS()
 
 void renderLoop()
 {
-	sCamera = new Snippets::Camera(PxVec3(-7, 100, 30), PxVec3(0, -0.6, -0.5));
+	sCamera = new Snippets::Camera(PxVec3(0, 200, 10), PxVec3(0, -1, -0.4));
 
 	Snippets::setupDefaultWindow("PhysX Main");
 	Snippets::setupDefaultRenderState();
@@ -103,7 +103,7 @@ void renderLoop()
 
 	atexit(exitCallback);
 
-	initPhysics(true);
+	initPhysics();
 	glutMainLoop();
 }
 

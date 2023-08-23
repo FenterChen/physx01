@@ -28,7 +28,6 @@ PxReal stackZ = 10.0f;
 
 PxRigidDynamic* createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity = PxVec3(0))
 {
-	PxReal addTime = 10.0f;
 	PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
 	dynamic->setAngularDamping(0.5f);
 	dynamic->setLinearVelocity(velocity);
@@ -54,7 +53,31 @@ void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 	shape->release();
 }
 
-void initPhysics(bool interactive)
+void createMachine()
+{
+	PxShape* machineShape = gPhysics->createShape(PxBoxGeometry(5, 10, 40), *gMaterial);
+	PxShape* machineShapeB = gPhysics->createShape(PxBoxGeometry(55, 5, 40), *gMaterial);
+	PxShape* machineShapeP = gPhysics->createShape(PxBoxGeometry(5, 5, 5), *gMaterial);
+	PxTransform machineTmL(PxVec3(PxReal(-50), PxReal(100), -40));
+	PxTransform machineTmR(PxVec3(PxReal(50), PxReal(100), -40));
+	PxTransform machineTmB(PxVec3(PxReal(0), PxReal(90), -40));
+	PxTransform machineTmP(PxVec3(PxReal(0), PxReal(100), -40));
+	PxRigidStatic* machineL = gPhysics->createRigidStatic(machineTmL);
+	PxRigidStatic* machineR = gPhysics->createRigidStatic(machineTmR);
+	PxRigidStatic* machineB = gPhysics->createRigidStatic(machineTmB);
+	PxRigidDynamic* machineP = gPhysics->createRigidDynamic(machineTmP);
+	machineL->attachShape(*machineShape);
+	machineR->attachShape(*machineShape);
+	machineB->attachShape(*machineShapeB);
+	machineP->attachShape(*machineShapeP);
+	PxRigidBodyExt::updateMassAndInertia(*machineP, 10.0f);
+	gScene->addActor(*machineL);
+	gScene->addActor(*machineR);
+	gScene->addActor(*machineB);
+	gScene->addActor(*machineP);
+}
+
+void initPhysics()
 {
 	gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
 
@@ -67,7 +90,7 @@ void initPhysics(bool interactive)
 	PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 
 	//ENABLE_ENHANCED_DETERMINISM
-	sceneDesc.flags.set(PxSceneFlag::eENABLE_ENHANCED_DETERMINISM);
+	//sceneDesc.flags.set(PxSceneFlag::eENABLE_ENHANCED_DETERMINISM);
 
 	sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
 	gDispatcher = PxDefaultCpuDispatcherCreate(2);
@@ -84,15 +107,16 @@ void initPhysics(bool interactive)
 	}
 	gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
-	PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
-	gScene->addActor(*groundPlane);
+	//plane
+	//PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
+	//gScene->addActor(*groundPlane);
 
-	for (PxU32 i = 0; i < 10; i++)
-		createStack(PxTransform(PxVec3(0, 0, stackZ -= 10.0f)), 10, 2.0f);
+	//create Coin pusher machine
+	createMachine();
 
+	//for (PxU32 i = 0; i < 10; i++)
+		//createStack(PxTransform(PxVec3(0, 0, stackZ -= 10.0f)), 10, 2.0f);
 
-	if (!interactive)
-		createDynamic(PxTransform(PxVec3(0, 40, 50)), PxSphereGeometry(10), PxVec3(0, -50, -100));
 }
 
 void stepPhysics(bool /*interactive*/)
@@ -104,25 +128,25 @@ void stepPhysics(bool /*interactive*/)
 	gScene->simulate(1.0f / 30.0f);
 	gScene->fetchResults(true);
 	PxU32 timestamp = gScene->getTimestamp();
-	if (timestamp == 30) {
-		createDynamic(PxTransform(PxVec3(0, 40, 50)), PxSphereGeometry(5), PxVec3(0, -50, -100));
-	}
-	if (timestamp == 150) {
-		createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
-		createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
-		createDynamic(PxTransform(PxVec3(0, 40, 40)), PxSphereGeometry(10), PxVec3(0, -50, -100));
-	}
-	if (timestamp == 300) {
-		createDynamic(PxTransform(PxVec3(0, 40, 50)), PxSphereGeometry(5), PxVec3(0, -50, -100));
-	}
-	if (timestamp == 400) {
-		createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
-		createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
-		createDynamic(PxTransform(PxVec3(0, 40, 10)), PxSphereGeometry(10), PxVec3(0, -50, -100));
-	}
-	if (timestamp == 500) {
-		createDynamic(PxTransform(PxVec3(0, 40, 10)), PxSphereGeometry(5), PxVec3(0, -50, -100));
-	}
+	//if (timestamp == 30) {
+	//	createDynamic(PxTransform(PxVec3(0, 40, 50)), PxSphereGeometry(5), PxVec3(0, -50, -100));
+	//}
+	//if (timestamp == 150) {
+	//	createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
+	//	createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
+	//	createDynamic(PxTransform(PxVec3(0, 40, 40)), PxSphereGeometry(10), PxVec3(0, -50, -100));
+	//}
+	//if (timestamp == 300) {
+	//	createDynamic(PxTransform(PxVec3(0, 40, 50)), PxSphereGeometry(5), PxVec3(0, -50, -100));
+	//}
+	//if (timestamp == 400) {
+	//	createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
+	//	createStack(PxTransform(PxVec3(0, 0, stackZ -= 20.0f)), 10, 2.0f);
+	//	createDynamic(PxTransform(PxVec3(0, 40, 10)), PxSphereGeometry(10), PxVec3(0, -50, -100));
+	//}
+	//if (timestamp == 500) {
+	//	createDynamic(PxTransform(PxVec3(0, 40, 10)), PxSphereGeometry(5), PxVec3(0, -50, -100));
+	//}
 }
 
 void cleanupPhysics(bool /*interactive*/)
