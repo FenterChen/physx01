@@ -4,7 +4,8 @@
 #include "SnippetPrint.h"
 #include "SnippetPVD.h"
 #include "SnippetUtils.h"
-#include <ctime>
+//#include <ctime>
+//#include <iostream>
 
 #define RENDER_SNIPPET 
 
@@ -28,8 +29,13 @@ PxRigidDynamic* machineP;
 
 bool direction = true;
 float xLine = 0.0;
-float stepFps = 30;
+float stepFps = 1.0f / 30.0f;
+int i = 0;
+int lastTime = 0;
 //int xLine = 0;
+
+extern void updateFPS();
+extern void displayFPS();
 
 
 PxRigidDynamic* createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity = PxVec3(0))
@@ -89,9 +95,9 @@ void createMachine()
 }
 
 void push() {
-
 	if (direction==true) {
 		//machineP->setLinearVelocity(PxVec3(xLine = xLine + 1/stepFps, 0, 0));
+		//int elapsedTime = clock() / CLOCKS_PER_SEC;
 		machineP->setGlobalPose(PxTransform(xLine= xLine++, 100, -40));
 		if (xLine >= 20.0f) {
 			direction = false;
@@ -136,8 +142,8 @@ void initPhysics()
 	gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
 	//plane
-	//PxRigidStatic* groundPlane = PxCrkeatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
-	//gScene->addActor(*groundPlane);
+	PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
+	gScene->addActor(*groundPlane);
 
 	//create Coin pusher machine
 	createMachine();
@@ -149,16 +155,28 @@ void initPhysics()
 
 void stepPhysics(bool /*interactive*/)
 {
-	gScene->simulate(1.0f / stepFps);
+	gScene->simulate(stepFps);
 	gScene->fetchResults(true);
 	PxU32 timestamp = gScene->getTimestamp();
-	extern void updateFPS();
-	extern void displayFPS();
 	updateFPS();
+	//if (timestamp % (int)stepFps == 0) {
 	displayFPS();
-	if (timestamp % 30 == 0) {
-		push();
-	}
+	//}
+	//int now = clock() / CLOCKS_PER_SEC;
+	//if (now - lastTime > 0) {
+	push();
+	//	lastTime = now;
+	//}
+	//std::cout << "Delta value: " << Delta << std::endl;
+	//if (((int)Delta) % 1 == 0) {
+	//	/*std::cout << "Delta value: " << (int)Delta << std::endl;*/
+	//	push();
+	//}
+	//if (timestamp % ((int)stepFps * 2) == 0) {
+	//	push();
+	//}
+
+
 
 
 	//if (timestamp == 500) {

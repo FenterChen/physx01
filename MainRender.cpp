@@ -14,6 +14,10 @@ extern void initPhysics();
 extern void stepPhysics(bool interactive);
 extern void cleanupPhysics(bool interactive);
 extern void keyPress(unsigned char key, const PxTransform& camera);
+shdfnd::Time	mTimer;
+PxReal delta;
+PxReal lastTime;
+float fps = 1.0f / 60.0f;
 
 namespace
 {
@@ -41,7 +45,13 @@ namespace
 
 	void idleCallback()
 	{
-		glutPostRedisplay();
+		delta = PxReal(mTimer.peekElapsedSeconds());
+		if (delta - lastTime > fps) {
+			lastTime = delta;
+			glutPostRedisplay();
+		}
+
+		//glutPostRedisplay();
 	}
 
 	void renderCallback()
@@ -99,10 +109,9 @@ void renderLoop()
 	glutKeyboardFunc(keyboardCallback);
 	glutMouseFunc(mouseCallback);
 	glutMotionFunc(motionCallback);
+
 	motionCallback(0, 0);
-
 	atexit(exitCallback);
-
 	initPhysics();
 	glutMainLoop();
 }
