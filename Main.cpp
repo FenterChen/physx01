@@ -1,7 +1,5 @@
-#include "PxPhysics.h"
 #include "PxPhysicsAPI.h"
 #include <ctype.h>
-#include "SnippetPrint.h"
 #include "SnippetPVD.h"
 #include "SnippetUtils.h"
 //#include <ctime>
@@ -17,22 +15,24 @@ PxDefaultErrorCallback	gErrorCallback;
 PxFoundation* gFoundation = NULL;
 PxPhysics* gPhysics = NULL;
 
+PxCooking* mCooking;
+
 PxDefaultCpuDispatcher* gDispatcher = NULL;
 PxScene* gScene = NULL;
 
 PxMaterial* gMaterial = NULL;
+PxMaterial* mMaterial = NULL;
 
 PxPvd* gPvd = NULL;
 
 PxReal stackZ = 10.0f;
-PxRigidDynamic* machineP;
+PxRigidStatic* machineP;
 
 bool direction = true;
-float xLine = 0.0;
+float zLine = -80.0;
 float stepFps = 1.0f / 30.0f;
 int i = 0;
 int lastTime = 0;
-//int xLine = 0;
 
 extern void updateFPS();
 extern void displayFPS();
@@ -55,7 +55,7 @@ void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 	{
 		for (PxU32 j = 0; j < size - i; j++)
 		{
-			PxTransform localTm(PxVec3(PxReal(j * 2) - PxReal(size - i), PxReal(i * 2 + 1), 0) * halfExtent);
+			PxTransform localTm(PxVec3(PxReal(j * 2) - PxReal(size - i), PxReal(i * 2 + 1), PxReal(0)) * halfExtent);
 			PxRigidDynamic* body = gPhysics->createRigidDynamic(t.transform(localTm));
 			body->attachShape(*shape);
 			PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
@@ -65,50 +65,117 @@ void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 	shape->release();
 }
 
+void pushByStep() {
+	if (direction == true) {
+		//machineP->setLinearVelocity(PxVec3(xLine = xLine + 1/stepFps, 0, 0));
+		//int elapsedTime = clock() / CLOCKS_PER_SEC;
+		machineP->setGlobalPose(PxTransform(0.0f, 95.0f, zLine = zLine - 0.3f));
+		if (zLine <= -80.0f) {
+			direction = false;
+		}
+	}
+	else {
+		//machineP->setLinearVelocity(PxVec3(xLine = xLine - 1/stepFps, 0, 0));
+		machineP->setGlobalPose(PxTransform(0.0f, 95.0f, zLine = zLine + 0.3f));
+		if (zLine >= -65.0f) {
+			direction = true;
+		}
+	}
+}
+
+void createCoin() {
+	int numPoints = 32;
+	PxConvexMeshDesc convexDesc;
+	convexDesc.points.count = numPoints * 2;
+	convexDesc.points.stride = sizeof(PxVec3);
+	PxVec3* convexVerts = new PxVec3[convexDesc.points.count];
+	float radius = 3.0f;
+	float height = 2.0f;
+	for (int i = 0; i < numPoints; i++) {
+		float angle = (float)i / (float)numPoints * 2.0f * PxPi;
+		convexVerts[i] = PxVec3(PxReal(cos(angle) * radius), PxReal(sin(angle) * radius), PxReal(0));
+		convexVerts[i + numPoints] = PxVec3(PxReal(cos(angle) * radius), PxReal(sin(angle) * radius), PxReal(height));
+	}
+	convexDesc.points.data = convexVerts;
+	convexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
+
+	PxRigidActor* coinActor = gPhysics->createRigidDynamic(PxTransform(PxVec3(PxReal(20), PxReal(100), PxReal(-40))));
+	mMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
+
+	PxDefaultMemoryOutputStream buf;
+	PxConvexMeshCookingResult::Enum result;
+
+	if (!mCooking->cookConvexMesh(convexDesc, buf, &result)) {
+		printf("cookConvexMesh failed");
+	}
+	else {
+		PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+		PxConvexMesh* convexMesh = gPhysics->createConvexMesh(input);
+		PxShape* aConvexShape = PxRigidActorExt::createExclusiveShape(*coinActor,
+			PxConvexMeshGeometry(convexMesh), *mMaterial);
+		coinActor->attachShape(*aConvexShape);
+		gScene->addActor(*coinActor);
+	}
+}
+
+//void createCoin() {
+//	PxConvexMeshDesc convexDesc;
+//	convexDesc.points.count = 5;
+//	convexDesc.points.stride = sizeof(PxVec3);
+//	static const PxVec3 convexVerts[] = { PxVec3(0,1,0),PxVec3(1,0,0),PxVec3(-1,0,0),PxVec3(0,0,1),
+//	PxVec3(0,0,-1) };
+//	convexDesc.points.data = convexVerts;
+//	convexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
+//
+//	PxRigidActor* coinActor = gPhysics->createRigidDynamic(PxTransform(PxVec3(PxReal(20), PxReal(100), PxReal(-40))));
+//	mMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
+//
+//	PxDefaultMemoryOutputStream buf;
+//	PxConvexMeshCookingResult::Enum result;
+//
+//	if (!mCooking->cookConvexMesh(convexDesc, buf, &result)) {
+//		printf("cookConvexMesh failed");
+//	}
+//	else {
+//		PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+//		PxConvexMesh* convexMesh = gPhysics->createConvexMesh(input);
+//		PxShape* aConvexShape = PxRigidActorExt::createExclusiveShape(*coinActor,
+//			PxConvexMeshGeometry(convexMesh), *mMaterial);
+//		coinActor->attachShape(*aConvexShape);
+//		gScene->addActor(*coinActor);
+//	}
+//
+//}
+
 void createMachine()
 {
 	PxShape* machineShape = gPhysics->createShape(PxBoxGeometry(5, 10, 40), *gMaterial);
 	PxShape* machineShapeB = gPhysics->createShape(PxBoxGeometry(55, 5, 40), *gMaterial);
-	PxShape* machineShapeP = gPhysics->createShape(PxBoxGeometry(5, 5, 5), *gMaterial);
-	PxShape* machineShapeP2 = gPhysics->createShape(PxBoxGeometry(2, 2, 2), *gMaterial);
-	PxTransform machineTmL(PxVec3(PxReal(-50), PxReal(100), -40));
-	PxTransform machineTmR(PxVec3(PxReal(50), PxReal(100), -40));
-	PxTransform machineTmB(PxVec3(PxReal(0), PxReal(90), -40));
-	PxTransform machineTmP(PxVec3(PxReal(0), PxReal(100), -40));
-	PxTransform machineTmP2(PxVec3(PxReal(20), PxReal(100), -40));
+	PxShape* machineShapeP = gPhysics->createShape(PxBoxGeometry(45, 2, 20), *gMaterial);
+	PxShape* machineShapeT = gPhysics->createShape(PxBoxGeometry(45, 6.5, 5), *gMaterial);
+
+	PxTransform machineTmL(PxVec3(PxReal(-50), PxReal(100), PxReal(-40)));
+	PxTransform machineTmR(PxVec3(PxReal(50), PxReal(100), PxReal(-40)));
+	PxTransform machineTmB(PxVec3(PxReal(0), PxReal(90), PxReal(-40)));
+	PxTransform machineTmT(PxVec3(PxReal(0), PxReal(103.5), PxReal(-75)));
+	PxTransform machineTmP(PxVec3(PxReal(0), PxReal(95), PxReal(-80)));
+
 	PxRigidStatic* machineL = gPhysics->createRigidStatic(machineTmL);
 	PxRigidStatic* machineR = gPhysics->createRigidStatic(machineTmR);
 	PxRigidStatic* machineB = gPhysics->createRigidStatic(machineTmB);
-	machineP = gPhysics->createRigidDynamic(machineTmP);
-	PxRigidDynamic* machineP2 = gPhysics->createRigidDynamic(machineTmP2);
+	PxRigidStatic* machineT = gPhysics->createRigidStatic(machineTmT);
+	machineP = gPhysics->createRigidStatic(machineTmP);
+
 	machineL->attachShape(*machineShape);
 	machineR->attachShape(*machineShape);
 	machineB->attachShape(*machineShapeB);
+	machineT->attachShape(*machineShapeT);
 	machineP->attachShape(*machineShapeP);
-	machineP2->attachShape(*machineShapeP2);
-	PxRigidBodyExt::updateMassAndInertia(*machineP, 10.0f);
 	gScene->addActor(*machineL);
 	gScene->addActor(*machineR);
 	gScene->addActor(*machineB);
+	gScene->addActor(*machineT);
 	gScene->addActor(*machineP);
-	gScene->addActor(*machineP2);
-}
-
-void push() {
-	if (direction==true) {
-		//machineP->setLinearVelocity(PxVec3(xLine = xLine + 1/stepFps, 0, 0));
-		//int elapsedTime = clock() / CLOCKS_PER_SEC;
-		machineP->setGlobalPose(PxTransform(xLine= xLine++, 100, -40));
-		if (xLine >= 20.0f) {
-			direction = false;
-		}
-	}  else {
-		//machineP->setLinearVelocity(PxVec3(xLine = xLine - 1/stepFps, 0, 0));
-		machineP->setGlobalPose(PxTransform(xLine = xLine--, 100, -40));
-		if (xLine <= -20.0f) {
-			direction = true;
-		}
-	}
 }
 
 void initPhysics()
@@ -121,13 +188,17 @@ void initPhysics()
 
 	gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true, gPvd);
 
+	mCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, PxCookingParams(gPhysics->getTolerancesScale()));
+	if (!mCooking)
+		printf("PxCreateCooking failed!");
+
 	PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 
 	//ENABLE_ENHANCED_DETERMINISM
 	//sceneDesc.flags.set(PxSceneFlag::eENABLE_ENHANCED_DETERMINISM);
 
 	sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
-	gDispatcher = PxDefaultCpuDispatcherCreate(2);
+	gDispatcher = PxDefaultCpuDispatcherCreate(8);
 	sceneDesc.cpuDispatcher = gDispatcher;
 	sceneDesc.filterShader = PxDefaultSimulationFilterShader;
 	gScene = gPhysics->createScene(sceneDesc);
@@ -142,11 +213,16 @@ void initPhysics()
 	gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
 	//plane
-	PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
-	gScene->addActor(*groundPlane);
+	//PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
+	//gScene->addActor(*groundPlane);
 
 	//create Coin pusher machine
 	createMachine();
+	//create Coin
+	createCoin();
+	createCoin();
+	createCoin();
+
 
 	//for (PxU32 i = 0; i < 10; i++)
 		//createStack(PxTransform(PxVec3(0, 0, stackZ -= 10.0f)), 10, 2.0f);
@@ -160,11 +236,11 @@ void stepPhysics(bool /*interactive*/)
 	PxU32 timestamp = gScene->getTimestamp();
 	updateFPS();
 	//if (timestamp % (int)stepFps == 0) {
-	displayFPS();
+	//displayFPS();
 	//}
 	//int now = clock() / CLOCKS_PER_SEC;
 	//if (now - lastTime > 0) {
-	push();
+	pushByStep();
 	//	lastTime = now;
 	//}
 	//std::cout << "Delta value: " << Delta << std::endl;
