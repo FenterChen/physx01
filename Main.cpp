@@ -21,7 +21,7 @@ PxDefaultCpuDispatcher* gDispatcher = NULL;
 PxScene* gScene = NULL;
 
 PxMaterial* gMaterial = NULL;
-PxMaterial* mMaterial = NULL;
+PxMaterial* coinMaterial = NULL;
 
 PxPvd* gPvd = NULL;
 
@@ -78,7 +78,7 @@ void pushByStep() {
 	else {
 		//machineP->setLinearVelocity(PxVec3(xLine = xLine - 1/stepFps, 0, 0));
 		machineP->setKinematicTarget(PxTransform(0.0f, 95.0f, zLine = zLine + 0.2f));
-		if (zLine >= -50.0f) {
+		if (zLine >= -65.0f) {
 			direction = true;
 		}
 	}
@@ -104,7 +104,7 @@ void createCoin(PxReal xAxis, PxReal yAxis, PxReal zAxis) {
 	PxQuat rotation(PxHalfPi, PxVec3(1, 0, 0));
 
 	PxRigidDynamic* coinActor = gPhysics->createRigidDynamic(PxTransform(PxVec3(PxReal(xAxis), PxReal(yAxis), PxReal(zAxis)), rotation));
-	mMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
+	coinMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.0f);
 
 	PxDefaultMemoryOutputStream buf;
 	PxConvexMeshCookingResult::Enum result;
@@ -116,10 +116,10 @@ void createCoin(PxReal xAxis, PxReal yAxis, PxReal zAxis) {
 		PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
 		PxConvexMesh* convexMesh = gPhysics->createConvexMesh(input);
 		PxShape* aConvexShape = PxRigidActorExt::createExclusiveShape(*coinActor,
-			PxConvexMeshGeometry(convexMesh), *mMaterial);
-		coinActor->attachShape(*aConvexShape);
+			PxConvexMeshGeometry(convexMesh), *coinMaterial);
 		PxRigidBodyExt::updateMassAndInertia(*coinActor, 10.0f);
 		gScene->addActor(*coinActor);
+		aConvexShape->release();
 	}
 }
 
@@ -182,6 +182,11 @@ void createMachine()
 	gScene->addActor(*machineB);
 	gScene->addActor(*machineT);
 	gScene->addActor(*machineP);
+
+	machineShape->release();
+	machineShapeB->release();
+	machineShapeP->release();
+	machineShapeT->release();
 }
 
 void initPhysics()
@@ -224,49 +229,6 @@ void initPhysics()
 
 	//create Coin pusher machine
 	createMachine();
-	//create Coin
-	createCoin(-40, 97, -40);
-	createCoin(-30,97,-40);
-	createCoin(-20,97,-40);
-	createCoin(-10,97,-40);
-	createCoin(0,97,-40);
-	createCoin(10,97,-40);
-	createCoin(20,97,-40);
-	createCoin(30, 97, -40);
-	createCoin(40, 97, -40);
-
-	createCoin(-40, 97, -30);
-	createCoin(-30,97,-30);
-	createCoin(-20,97,-30);
-	createCoin(-10,97,-30);
-	createCoin(0,97,-30);
-	createCoin(10,97,-30);
-	createCoin(20,97,-30);
-	createCoin(30, 97, -30);
-	createCoin(40, 97, -30);
-	
-	createCoin(-40, 97, -20);
-	createCoin(-30,97,-20);
-	createCoin(-20,97,-20);
-	createCoin(-10,97,-20);
-	createCoin(0,97,-20);
-	createCoin(10,97,-20);
-	createCoin(20,97,-20);
-	createCoin(30, 97, -20);
-	createCoin(40, 97, -20);
-
-	createCoin(-40, 97, -10);
-	createCoin(-30,97,-10);
-	createCoin(-20,97,-10);
-	createCoin(-10,97,-10);
-	createCoin(0,97,-10);
-	createCoin(10,97,-10);
-	createCoin(20,97,-10);
-	createCoin(30, 97, -10);
-	createCoin(40, 97, -10);
-
-	//createCoin(0, 105, -65);
-	//createCoin(10, 105, -65);
 
 
 	//for (PxU32 i = 0; i < 10; i++)
@@ -280,9 +242,9 @@ void stepPhysics(bool /*interactive*/)
 	gScene->fetchResults(true);
 	PxU32 timestamp = gScene->getTimestamp();
 	updateFPS();
-	//if (timestamp % (int)stepFps == 0) {
-	//displayFPS();
-	//}
+	if (timestamp % 60 == 0) {
+	displayFPS();
+	}
 	//int now = clock() / CLOCKS_PER_SEC;
 	//if (now - lastTime > 0) {
 	pushByStep();
@@ -293,10 +255,77 @@ void stepPhysics(bool /*interactive*/)
 	//	/*std::cout << "Delta value: " << (int)Delta << std::endl;*/
 	//	push();
 	//}
-	//if (timestamp % ((int)stepFps * 2) == 0) {
-	//	push();
-	//}
+	if (timestamp == 120) {
+		createCoin(0, 105, -65);
+		createCoin(-20, 105, -65);
+		createCoin(20, 105, -65);
+		createCoin(30, 105, -65);
+		createCoin(-30, 105, -65);
+	}
+	if (timestamp % (60*5) == 0) {
+		createCoin(0, 105, -65);
+	}	
+	if (timestamp % (60*8) == 0) {
+		createCoin(-20, 105, -65);
+	}	
+	if (timestamp % (60*12) == 0) {
+		createCoin(20, 105, -65);
+	}	
+	if (timestamp % (60*16) == 0) {
+		createCoin(30, 105, -65);
+	}	
+	if (timestamp % (60*20) == 0) {
+		createCoin(-30, 105, -65);
+	}
 
+	//create Coin
+	if (timestamp == 30) {
+		createCoin(-40, 97, -40);
+		createCoin(-30, 97, -40);
+		createCoin(-20, 97, -40);
+		createCoin(-10, 97, -40);
+		createCoin(0, 97, -40);
+		createCoin(10, 97, -40);
+		createCoin(20, 97, -40);
+		createCoin(30, 97, -40);
+		createCoin(40, 97, -40);
+	}
+
+	if (timestamp == 60) {
+		createCoin(-40, 97, -30);
+		createCoin(-30, 97, -30);
+		createCoin(-20, 97, -30);
+		createCoin(-10, 97, -30);
+		createCoin(0, 97, -30);
+		createCoin(10, 97, -30);
+		createCoin(20, 97, -30);
+		createCoin(30, 97, -30);
+		createCoin(40, 97, -30);
+	}
+
+	if (timestamp == 90) {
+		createCoin(-40, 97, -20);
+		createCoin(-30, 97, -20);
+		createCoin(-20, 97, -20);
+		createCoin(-10, 97, -20);
+		createCoin(0, 97, -20);
+		createCoin(10, 97, -20);
+		createCoin(20, 97, -20);
+		createCoin(30, 97, -20);
+		createCoin(40, 97, -20);
+	}
+
+	if (timestamp == 120) {
+		createCoin(-40, 97, -10);
+		createCoin(-30, 97, -10);
+		createCoin(-20, 97, -10);
+		createCoin(-10, 97, -10);
+		createCoin(0, 97, -10);
+		createCoin(10, 97, -10);
+		createCoin(20, 97, -10);
+		createCoin(30, 97, -10);
+		createCoin(40, 97, -10);
+	}
 
 
 
