@@ -26,7 +26,7 @@ PxMaterial* mMaterial = NULL;
 PxPvd* gPvd = NULL;
 
 PxReal stackZ = 10.0f;
-PxRigidStatic* machineP;
+PxRigidDynamic* machineP;
 
 bool direction = true;
 float zLine = -80.0;
@@ -69,22 +69,23 @@ void pushByStep() {
 	if (direction == true) {
 		//machineP->setLinearVelocity(PxVec3(xLine = xLine + 1/stepFps, 0, 0));
 		//int elapsedTime = clock() / CLOCKS_PER_SEC;
-		machineP->setGlobalPose(PxTransform(0.0f, 95.0f, zLine = zLine - 0.3f));
-		if (zLine <= -80.0f) {
+		//machineP->setGlobalPose(PxTransform(0.0f, 95.0f, zLine = zLine - 0.2f));
+		machineP->setKinematicTarget(PxTransform(0.0f, 95.0f, zLine = zLine - 0.2f));
+		if (zLine <= -90.0f) {
 			direction = false;
 		}
 	}
 	else {
 		//machineP->setLinearVelocity(PxVec3(xLine = xLine - 1/stepFps, 0, 0));
-		machineP->setGlobalPose(PxTransform(0.0f, 95.0f, zLine = zLine + 0.3f));
-		if (zLine >= -65.0f) {
+		machineP->setKinematicTarget(PxTransform(0.0f, 95.0f, zLine = zLine + 0.2f));
+		if (zLine >= -50.0f) {
 			direction = true;
 		}
 	}
 }
 
 void createCoin(PxReal xAxis, PxReal yAxis, PxReal zAxis) {
-	int numPoints = 20;
+	int numPoints = 32;
 	PxConvexMeshDesc convexDesc;
 	convexDesc.points.count = numPoints * 2;
 	convexDesc.points.stride = sizeof(PxVec3);
@@ -102,7 +103,7 @@ void createCoin(PxReal xAxis, PxReal yAxis, PxReal zAxis) {
 	//init rotation
 	PxQuat rotation(PxHalfPi, PxVec3(1, 0, 0));
 
-	PxRigidActor* coinActor = gPhysics->createRigidDynamic(PxTransform(PxVec3(PxReal(xAxis), PxReal(yAxis), PxReal(zAxis)), rotation));
+	PxRigidDynamic* coinActor = gPhysics->createRigidDynamic(PxTransform(PxVec3(PxReal(xAxis), PxReal(yAxis), PxReal(zAxis)), rotation));
 	mMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
 	PxDefaultMemoryOutputStream buf;
@@ -117,6 +118,7 @@ void createCoin(PxReal xAxis, PxReal yAxis, PxReal zAxis) {
 		PxShape* aConvexShape = PxRigidActorExt::createExclusiveShape(*coinActor,
 			PxConvexMeshGeometry(convexMesh), *mMaterial);
 		coinActor->attachShape(*aConvexShape);
+		PxRigidBodyExt::updateMassAndInertia(*coinActor, 10.0f);
 		gScene->addActor(*coinActor);
 	}
 }
@@ -167,7 +169,8 @@ void createMachine()
 	PxRigidStatic* machineR = gPhysics->createRigidStatic(machineTmR);
 	PxRigidStatic* machineB = gPhysics->createRigidStatic(machineTmB);
 	PxRigidStatic* machineT = gPhysics->createRigidStatic(machineTmT);
-	machineP = gPhysics->createRigidStatic(machineTmP);
+	machineP = gPhysics->createRigidDynamic(machineTmP);
+	machineP->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
 
 	machineL->attachShape(*machineShape);
 	machineR->attachShape(*machineShape);
@@ -222,7 +225,48 @@ void initPhysics()
 	//create Coin pusher machine
 	createMachine();
 	//create Coin
-	createCoin(10,97,-40);createCoin(20,97,-40);createCoin(30,97,-40);createCoin(0,97,-40);
+	createCoin(-40, 97, -40);
+	createCoin(-30,97,-40);
+	createCoin(-20,97,-40);
+	createCoin(-10,97,-40);
+	createCoin(0,97,-40);
+	createCoin(10,97,-40);
+	createCoin(20,97,-40);
+	createCoin(30, 97, -40);
+	createCoin(40, 97, -40);
+
+	createCoin(-40, 97, -30);
+	createCoin(-30,97,-30);
+	createCoin(-20,97,-30);
+	createCoin(-10,97,-30);
+	createCoin(0,97,-30);
+	createCoin(10,97,-30);
+	createCoin(20,97,-30);
+	createCoin(30, 97, -30);
+	createCoin(40, 97, -30);
+	
+	createCoin(-40, 97, -20);
+	createCoin(-30,97,-20);
+	createCoin(-20,97,-20);
+	createCoin(-10,97,-20);
+	createCoin(0,97,-20);
+	createCoin(10,97,-20);
+	createCoin(20,97,-20);
+	createCoin(30, 97, -20);
+	createCoin(40, 97, -20);
+
+	createCoin(-40, 97, -10);
+	createCoin(-30,97,-10);
+	createCoin(-20,97,-10);
+	createCoin(-10,97,-10);
+	createCoin(0,97,-10);
+	createCoin(10,97,-10);
+	createCoin(20,97,-10);
+	createCoin(30, 97, -10);
+	createCoin(40, 97, -10);
+
+	//createCoin(0, 105, -65);
+	//createCoin(10, 105, -65);
 
 
 	//for (PxU32 i = 0; i < 10; i++)
