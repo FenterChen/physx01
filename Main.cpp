@@ -83,8 +83,8 @@ void pushByStep() {
 	}
 }
 
-void createCoin() {
-	int numPoints = 32;
+void createCoin(PxReal xAxis, PxReal yAxis, PxReal zAxis) {
+	int numPoints = 20;
 	PxConvexMeshDesc convexDesc;
 	convexDesc.points.count = numPoints * 2;
 	convexDesc.points.stride = sizeof(PxVec3);
@@ -99,7 +99,10 @@ void createCoin() {
 	convexDesc.points.data = convexVerts;
 	convexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
 
-	PxRigidActor* coinActor = gPhysics->createRigidDynamic(PxTransform(PxVec3(PxReal(20), PxReal(100), PxReal(-40))));
+	//init rotation
+	PxQuat rotation(PxHalfPi, PxVec3(1, 0, 0));
+
+	PxRigidActor* coinActor = gPhysics->createRigidDynamic(PxTransform(PxVec3(PxReal(xAxis), PxReal(yAxis), PxReal(zAxis)), rotation));
 	mMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
 	PxDefaultMemoryOutputStream buf;
@@ -219,9 +222,7 @@ void initPhysics()
 	//create Coin pusher machine
 	createMachine();
 	//create Coin
-	createCoin();
-	createCoin();
-	createCoin();
+	createCoin(10,97,-40);createCoin(20,97,-40);createCoin(30,97,-40);createCoin(0,97,-40);
 
 
 	//for (PxU32 i = 0; i < 10; i++)
