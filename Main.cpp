@@ -11,28 +11,33 @@ using namespace physx;
 
 PxDefaultAllocator		gAllocator;
 PxDefaultErrorCallback	gErrorCallback;
-
 PxFoundation* gFoundation = NULL;
 PxPhysics* gPhysics = NULL;
-
-PxCooking* mCooking;
-
+PxCooking* mCooking = NULL;
 PxDefaultCpuDispatcher* gDispatcher = NULL;
 PxScene* gScene = NULL;
-
 PxMaterial* gMaterial = NULL;
 PxMaterial* coinMaterial = NULL;
-
 PxPvd* gPvd = NULL;
-
-PxReal stackZ = 10.0f;
 PxRigidDynamic* machineP;
+PxReal stackZ = 10.0f;
 
 bool direction = true;
 float zLine = -80.0;
-float stepFps = 1.0f / 30.0f;
+float stepFps = 1.0f / 50.0f;
 int i = 0;
 int lastTime = 0;
+
+//creat coin
+PxRigidDynamic* coinActor;
+PxConvexMeshDesc coinConvexDesc;
+const int numPoints = 32;
+const float radius = 3.0f;
+const float height = 2.0f;
+PxVec3* coinConvexVerts = NULL;
+PxQuat coinRotation(PxHalfPi, PxVec3(1, 0, 0));
+PxConvexMesh* convexMesh;
+PxShape* aConvexShape;
 
 extern void updateFPS();
 extern void displayFPS();
@@ -85,41 +90,37 @@ void pushByStep() {
 }
 
 void createCoin(PxReal xAxis, PxReal yAxis, PxReal zAxis) {
-	int numPoints = 32;
-	PxConvexMeshDesc convexDesc;
-	convexDesc.points.count = numPoints * 2;
-	convexDesc.points.stride = sizeof(PxVec3);
-	PxVec3* convexVerts = new PxVec3[convexDesc.points.count];
-	float radius = 3.0f;
-	float height = 2.0f;
-	for (int i = 0; i < numPoints; i++) {
-		float angle = (float)i / (float)numPoints * 2.0f * PxPi;
-		convexVerts[i] = PxVec3(PxReal(cos(angle) * radius), PxReal(sin(angle) * radius), PxReal(0));
-		convexVerts[i + numPoints] = PxVec3(PxReal(cos(angle) * radius), PxReal(sin(angle) * radius), PxReal(height));
+	coinConvexDesc.points.count = numPoints * 2;
+	coinConvexDesc.points.stride = sizeof(PxVec3);
+
+	if (coinConvexVerts == NULL) {
+		coinConvexVerts = new PxVec3[coinConvexDesc.points.count];
+		for (int i = 0; i < numPoints; i++) {
+			float angle = (float)i / (float)numPoints * 2.0f * PxPi;
+			coinConvexVerts[i] = PxVec3(PxReal(cos(angle) * radius), PxReal(sin(angle) * radius), PxReal(0));
+			coinConvexVerts[i + numPoints] = PxVec3(PxReal(cos(angle) * radius), PxReal(sin(angle) * radius), PxReal(height));
+		}
+		coinConvexDesc.points.data = coinConvexVerts;
+		coinConvexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
 	}
-	convexDesc.points.data = convexVerts;
-	convexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
 
-	//init rotation
-	PxQuat rotation(PxHalfPi, PxVec3(1, 0, 0));
-
-	PxRigidDynamic* coinActor = gPhysics->createRigidDynamic(PxTransform(PxVec3(PxReal(xAxis), PxReal(yAxis), PxReal(zAxis)), rotation));
+	coinActor = gPhysics->createRigidDynamic(PxTransform(PxVec3(PxReal(xAxis), PxReal(yAxis), PxReal(zAxis)), coinRotation));
 	coinMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.0f);
 
 	PxDefaultMemoryOutputStream buf;
 	PxConvexMeshCookingResult::Enum result;
 
-	if (!mCooking->cookConvexMesh(convexDesc, buf, &result)) {
+	if (!mCooking->cookConvexMesh(coinConvexDesc, buf, &result)) {
 		printf("cookConvexMesh failed");
 	}
 	else {
 		PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
-		PxConvexMesh* convexMesh = gPhysics->createConvexMesh(input);
-		PxShape* aConvexShape = PxRigidActorExt::createExclusiveShape(*coinActor,
+		convexMesh = gPhysics->createConvexMesh(input);
+		aConvexShape = PxRigidActorExt::createExclusiveShape(*coinActor,
 			PxConvexMeshGeometry(convexMesh), *coinMaterial);
 		PxRigidBodyExt::updateMassAndInertia(*coinActor, 10.0f);
 		gScene->addActor(*coinActor);
-		aConvexShape->release();
+		coinActor->release();
 	}
 }
 
@@ -206,7 +207,7 @@ void initPhysics()
 	PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 
 	//ENABLE_ENHANCED_DETERMINISM
-	//sceneDesc.flags.set(PxSceneFlag::eENABLE_ENHANCED_DETERMINISM);
+	sceneDesc.flags.set(PxSceneFlag::eENABLE_ENHANCED_DETERMINISM);
 
 	sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
 	gDispatcher = PxDefaultCpuDispatcherCreate(8);
@@ -278,7 +279,7 @@ void stepPhysics(bool /*interactive*/)
 		createCoin(-30, 105, -65);
 	}
 
-	//create Coin
+	//create Coin init postion
 	if (timestamp == 30) {
 		createCoin(-40, 97, -40);
 		createCoin(-30, 97, -40);
@@ -336,9 +337,11 @@ void stepPhysics(bool /*interactive*/)
 
 void cleanupPhysics(bool /*interactive*/)
 {
+	delete coinConvexVerts;
 	PX_RELEASE(gScene);
 	PX_RELEASE(gDispatcher);
 	PX_RELEASE(gPhysics);
+	PX_RELEASE(mCooking);
 	if (gPvd)
 	{
 		PxPvdTransport* transport = gPvd->getTransport();
@@ -352,7 +355,6 @@ void cleanupPhysics(bool /*interactive*/)
 
 void keyPress(unsigned char key, const PxTransform& camera)
 {
-	extern void displayFPS();
 	switch (toupper(key))
 	{
 	case 'B':	createStack(PxTransform(PxVec3(0, 0, stackZ -= 10.0f)), 10, 2.0f);						break;
