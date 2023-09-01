@@ -2,6 +2,9 @@
 #include <ctype.h>
 #include "SnippetPVD.h"
 #include "SnippetUtils.h"
+#include "PxTkFPS.h"
+#include <iostream>
+//#include <ctime>
 
 #define RENDER_SNIPPET 
 
@@ -19,14 +22,18 @@ PxMaterial* coinMaterial = NULL;
 PxPvd* gPvd = NULL;
 PxRigidDynamic* machineP;
 PxReal stackZ = 10.0f;
-//#include <iostream>
-//#include <ctime>
+int i = 0;
 
 bool direction = true;
 float zLine = -80.0;
 float stepFps = 1.0f / 50.0f;
-int i = 0;
-int lastTime = 0;
+int index = 0;
+int autoIndex = 0;
+float now = 0;
+float initCoin[4];
+float autoCoin[6];
+shdfnd::Time	sTimer;
+PxReal pastTime;
 
 //creat coin
 PxRigidDynamic* coinActor;
@@ -206,7 +213,7 @@ void initPhysics()
 	PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 
 	//ENABLE_ENHANCED_DETERMINISM
-	sceneDesc.flags.set(PxSceneFlag::eENABLE_ENHANCED_DETERMINISM);
+	//sceneDesc.flags.set(PxSceneFlag::eENABLE_ENHANCED_DETERMINISM);
 
 	sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
 	gDispatcher = PxDefaultCpuDispatcherCreate(8);
@@ -230,6 +237,17 @@ void initPhysics()
 	//create Coin pusher machine
 	createMachine();
 
+	initCoin[0] = 0.5f;
+	initCoin[1] = 1.0f;
+	initCoin[2] = 1.5f;
+	initCoin[3] = 2.0f;	
+	autoCoin[0] = 3.0f;
+	autoCoin[1] = 5.0f;
+	autoCoin[2] = 7.0f;
+	autoCoin[3] = 9.0f;
+	autoCoin[4] = 11.0f;
+	autoCoin[5] = 11.0f;
+
 
 	//for (PxU32 i = 0; i < 10; i++)
 		//createStack(PxTransform(PxVec3(0, 0, stackZ -= 10.0f)), 10, 2.0f);
@@ -248,90 +266,177 @@ void stepPhysics(bool /*interactive*/)
 	if (timestamp % 50 == 0) {
 		displayFPS();
 	}
+	now = PxReal(sTimer.peekElapsedSeconds());
+	now = std::floor(now * 100) / 100;
 	//if (timestamp % 2 == 0) {
 		pushByStep();
 	//}
-	//if (now - lastTime > 0) {
-	//	pushByStep();
-	//	lastTime = now;
-	//}
+
+	if (now >= initCoin[index]) {
+		if (index == 0) {
+			createCoin(-40, 97, -40);
+			createCoin(-30, 97, -40);
+			createCoin(-20, 97, -40);
+			createCoin(-10, 97, -40);
+			createCoin(0, 97, -40);
+			createCoin(10, 97, -40);
+			createCoin(20, 97, -40);
+			createCoin(30, 97, -40);
+			createCoin(40, 97, -40);
+		}
+		else if (index == 1) {
+			createCoin(-40, 97, -30);
+			createCoin(-30, 97, -30);
+			createCoin(-20, 97, -30);
+			createCoin(-10, 97, -30);
+			createCoin(0, 97, -30);
+			createCoin(10, 97, -30);
+			createCoin(20, 97, -30);
+			createCoin(30, 97, -30);
+			createCoin(40, 97, -30);
+		}
+		else if (index == 2) {
+			createCoin(-40, 97, -20);
+			createCoin(-30, 97, -20);
+			createCoin(-20, 97, -20);
+			createCoin(-10, 97, -20);
+			createCoin(0, 97, -20);
+			createCoin(10, 97, -20);
+			createCoin(20, 97, -20);
+			createCoin(30, 97, -20);
+			createCoin(40, 97, -20);
+		}
+		else if (index == 3) {
+			createCoin(-40, 97, -10);
+			createCoin(-30, 97, -10);
+			createCoin(-20, 97, -10);
+			createCoin(-10, 97, -10);
+			createCoin(0, 97, -10);
+			createCoin(10, 97, -10);
+			createCoin(20, 97, -10);
+			createCoin(30, 97, -10);
+			createCoin(40, 97, -10);
+		}
+		index++;
+	}
+
+	if (now >= autoCoin[autoIndex]) {
+		if (autoIndex == 0) {
+			autoCoin[autoIndex] = autoCoin[autoIndex] + 13.0f;
+			createCoin(0, 105, -65);
+			createCoin(-20, 105, -65);
+			createCoin(20, 105, -65);
+			createCoin(30, 105, -65);
+			createCoin(-30, 105, -65);
+			autoIndex++;
+		}
+		else if (autoIndex == 1) {
+			autoCoin[autoIndex] = autoCoin[autoIndex] + 13.0f;
+			createCoin(0, 105, -65);
+			createCoin(20, 105, -65);
+			autoIndex++;
+		}
+		else if (autoIndex == 2) {
+			autoCoin[autoIndex] = autoCoin[autoIndex] + 13.0f;
+			createCoin(-20, 105, -65);
+			createCoin(30, 105, -65);
+			autoIndex++;
+		}
+		else if (autoIndex == 3) {
+			autoCoin[autoIndex] = autoCoin[autoIndex] + 13.0f;
+			createCoin(20, 105, -65);
+			autoIndex++;
+		}
+		else if (autoIndex == 4) {
+			autoCoin[autoIndex] = autoCoin[autoIndex] + 13.0f;
+			autoIndex++;
+			createCoin(30, 105, -65);
+		}
+		else if (autoIndex == 5) {
+			autoCoin[autoIndex] = autoCoin[autoIndex] + 13.0f;
+			autoIndex = 0;
+			createCoin(30, 105, -65);
+			createCoin(-30, 105, -65);
+		}
+	}
+
 	// 
 	//std::cout << "Delta value: " << Delta << std::endl;
 	//if (((int)Delta) % 1 == 0) {
 	//	/*std::cout << "Delta value: " << (int)Delta << std::endl;*/
 	//	push();
 	//}
-	if (timestamp == 120) {
-		createCoin(0, 105, -65);
-		createCoin(-20, 105, -65);
-		createCoin(20, 105, -65);
-		createCoin(30, 105, -65);
-		createCoin(-30, 105, -65);
-	}
-	if (timestamp % (50*5) == 0) {
-		createCoin(0, 105, -65);
-	}	
-	if (timestamp % (50*8) == 0) {
-		createCoin(-20, 105, -65);
-	}	
-	if (timestamp % (50*12) == 0) {
-		createCoin(20, 105, -65);
-	}	
-	if (timestamp % (50*16) == 0) {
-		createCoin(30, 105, -65);
-	}	
-	if (timestamp % (50*20) == 0) {
-		createCoin(-30, 105, -65);
-	}
+	//if (timestamp == 120) {
+	//	createCoin(0, 105, -65);
+	//	createCoin(-20, 105, -65);
+	//	createCoin(20, 105, -65);
+	//	createCoin(30, 105, -65);
+	//	createCoin(-30, 105, -65);
+	//}
+	//if (timestamp % (50*5) == 0) {
+	//	createCoin(0, 105, -65);
+	//}	
+	//if (timestamp % (50*8) == 0) {
+	//	createCoin(-20, 105, -65);
+	//}	
+	//if (timestamp % (50*12) == 0) {
+	//	createCoin(20, 105, -65);
+	//}	
+	//if (timestamp % (50*16) == 0) {
+	//	createCoin(30, 105, -65);
+	//}	
+	//if (timestamp % (50*20) == 0) {
+	//	createCoin(-30, 105, -65);
+	//}
 
-	//create Coin init postion
-	if (timestamp == 30) {
-		createCoin(-40, 97, -40);
-		createCoin(-30, 97, -40);
-		createCoin(-20, 97, -40);
-		createCoin(-10, 97, -40);
-		createCoin(0, 97, -40);
-		createCoin(10, 97, -40);
-		createCoin(20, 97, -40);
-		createCoin(30, 97, -40);
-		createCoin(40, 97, -40);
-	}
+	////create Coin init postion
+	//if (timestamp == 30) {
+	//	createCoin(-40, 97, -40);
+	//	createCoin(-30, 97, -40);
+	//	createCoin(-20, 97, -40);
+	//	createCoin(-10, 97, -40);
+	//	createCoin(0, 97, -40);
+	//	createCoin(10, 97, -40);
+	//	createCoin(20, 97, -40);
+	//	createCoin(30, 97, -40);
+	//	createCoin(40, 97, -40);
+	//}
 
-	if (timestamp == 60) {
-		createCoin(-40, 97, -30);
-		createCoin(-30, 97, -30);
-		createCoin(-20, 97, -30);
-		createCoin(-10, 97, -30);
-		createCoin(0, 97, -30);
-		createCoin(10, 97, -30);
-		createCoin(20, 97, -30);
-		createCoin(30, 97, -30);
-		createCoin(40, 97, -30);
-	}
+	//if (timestamp == 60) {
+	//	createCoin(-40, 97, -30);
+	//	createCoin(-30, 97, -30);
+	//	createCoin(-20, 97, -30);
+	//	createCoin(-10, 97, -30);
+	//	createCoin(0, 97, -30);
+	//	createCoin(10, 97, -30);
+	//	createCoin(20, 97, -30);
+	//	createCoin(30, 97, -30);
+	//	createCoin(40, 97, -30);
+	//}
 
-	if (timestamp == 90) {
-		createCoin(-40, 97, -20);
-		createCoin(-30, 97, -20);
-		createCoin(-20, 97, -20);
-		createCoin(-10, 97, -20);
-		createCoin(0, 97, -20);
-		createCoin(10, 97, -20);
-		createCoin(20, 97, -20);
-		createCoin(30, 97, -20);
-		createCoin(40, 97, -20);
-	}
+	//if (timestamp == 90) {
+	//	createCoin(-40, 97, -20);
+	//	createCoin(-30, 97, -20);
+	//	createCoin(-20, 97, -20);
+	//	createCoin(-10, 97, -20);
+	//	createCoin(0, 97, -20);
+	//	createCoin(10, 97, -20);
+	//	createCoin(20, 97, -20);
+	//	createCoin(30, 97, -20);
+	//	createCoin(40, 97, -20);
+	//}
 
-	if (timestamp == 120) {
-		createCoin(-40, 97, -10);
-		createCoin(-30, 97, -10);
-		createCoin(-20, 97, -10);
-		createCoin(-10, 97, -10);
-		createCoin(0, 97, -10);
-		createCoin(10, 97, -10);
-		createCoin(20, 97, -10);
-		createCoin(30, 97, -10);
-		createCoin(40, 97, -10);
-	}
+	//if (timestamp == 120) {
+	//	createCoin(-40, 97, -10);
+	//	createCoin(-30, 97, -10);
+	//	createCoin(-20, 97, -10);
+	//	createCoin(-10, 97, -10);
+	//	createCoin(0, 97, -10);
+	//	createCoin(10, 97, -10);
+	//	createCoin(20, 97, -10);
+	//	createCoin(30, 97, -10);
+	//	createCoin(40, 97, -10);
+	//}
 
 
 

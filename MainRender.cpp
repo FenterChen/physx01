@@ -7,6 +7,7 @@
 #include "PxTkFPS.h"
 #include "../snippetrender/SnippetRender.h"
 #include "../snippetrender/SnippetCamera.h"
+#include <iostream>
 //#include <iostream>
 //#include <ctime>
 
@@ -19,9 +20,10 @@ extern void keyPress(unsigned char key, const PxTransform& camera);
 extern void createCoin(PxReal xAxis, PxReal yAxis, PxReal zAxis);
 extern void pushByStep();
 shdfnd::Time	mTimer;
-PxReal delta;
 PxReal lastTime;
-float fps = 1.0f / 30.0f;
+PxReal delta;
+PxReal lastTime2;
+float fps = 1.0f / 60.0f;
 int now;
 
 namespace
@@ -52,6 +54,7 @@ namespace
 	{
 
 		delta = PxReal(mTimer.peekElapsedSeconds());
+		delta = std::floor(delta * 100) / 100;
 		if (delta - lastTime >= fps) {
 			//std::cout << "time value: " << delta - lastTime << std::endl;
 			lastTime = delta;
