@@ -2,8 +2,6 @@
 #include <ctype.h>
 #include "SnippetPVD.h"
 #include "SnippetUtils.h"
-//#include <ctime>
-//#include <iostream>
 
 #define RENDER_SNIPPET 
 
@@ -21,6 +19,8 @@ PxMaterial* coinMaterial = NULL;
 PxPvd* gPvd = NULL;
 PxRigidDynamic* machineP;
 PxReal stackZ = 10.0f;
+//#include <iostream>
+//#include <ctime>
 
 bool direction = true;
 float zLine = -80.0;
@@ -120,7 +120,6 @@ void createCoin(PxReal xAxis, PxReal yAxis, PxReal zAxis) {
 			PxConvexMeshGeometry(convexMesh), *coinMaterial);
 		PxRigidBodyExt::updateMassAndInertia(*coinActor, 10.0f);
 		gScene->addActor(*coinActor);
-		coinActor->release();
 	}
 }
 
@@ -239,18 +238,24 @@ void initPhysics()
 
 void stepPhysics(bool /*interactive*/)
 {
+	//std::cout << "Delta value: " << timestamp << std::endl;
 	gScene->simulate(stepFps);
 	gScene->fetchResults(true);
 	PxU32 timestamp = gScene->getTimestamp();
+	//timestamp = gScene->getTimestamp();
+	//std::cout << "Delta value: " << timestamp << std::endl;
 	updateFPS();
-	if (timestamp % 60 == 0) {
-	displayFPS();
+	if (timestamp % 50 == 0) {
+		displayFPS();
 	}
-	//int now = clock() / CLOCKS_PER_SEC;
+	//if (timestamp % 2 == 0) {
+		pushByStep();
+	//}
 	//if (now - lastTime > 0) {
-	pushByStep();
+	//	pushByStep();
 	//	lastTime = now;
 	//}
+	// 
 	//std::cout << "Delta value: " << Delta << std::endl;
 	//if (((int)Delta) % 1 == 0) {
 	//	/*std::cout << "Delta value: " << (int)Delta << std::endl;*/
@@ -263,19 +268,19 @@ void stepPhysics(bool /*interactive*/)
 		createCoin(30, 105, -65);
 		createCoin(-30, 105, -65);
 	}
-	if (timestamp % (60*5) == 0) {
+	if (timestamp % (50*5) == 0) {
 		createCoin(0, 105, -65);
 	}	
-	if (timestamp % (60*8) == 0) {
+	if (timestamp % (50*8) == 0) {
 		createCoin(-20, 105, -65);
 	}	
-	if (timestamp % (60*12) == 0) {
+	if (timestamp % (50*12) == 0) {
 		createCoin(20, 105, -65);
 	}	
-	if (timestamp % (60*16) == 0) {
+	if (timestamp % (50*16) == 0) {
 		createCoin(30, 105, -65);
 	}	
-	if (timestamp % (60*20) == 0) {
+	if (timestamp % (50*20) == 0) {
 		createCoin(-30, 105, -65);
 	}
 

@@ -7,6 +7,8 @@
 #include "PxTkFPS.h"
 #include "../snippetrender/SnippetRender.h"
 #include "../snippetrender/SnippetCamera.h"
+//#include <iostream>
+//#include <ctime>
 
 using namespace physx;
 
@@ -14,10 +16,13 @@ extern void initPhysics();
 extern void stepPhysics(bool interactive);
 extern void cleanupPhysics(bool interactive);
 extern void keyPress(unsigned char key, const PxTransform& camera);
+extern void createCoin(PxReal xAxis, PxReal yAxis, PxReal zAxis);
+extern void pushByStep();
 shdfnd::Time	mTimer;
 PxReal delta;
 PxReal lastTime;
-float fps = 1.0f / 60.0f;
+float fps = 1.0f / 30.0f;
+int now;
 
 namespace
 {
@@ -45,8 +50,10 @@ namespace
 
 	void idleCallback()
 	{
+
 		delta = PxReal(mTimer.peekElapsedSeconds());
-		if (delta - lastTime > fps) {
+		if (delta - lastTime >= fps) {
+			//std::cout << "time value: " << delta - lastTime << std::endl;
 			lastTime = delta;
 			glutPostRedisplay();
 		}
